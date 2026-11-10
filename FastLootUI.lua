@@ -1,12 +1,14 @@
 --[[
-  FastLoot window: /fastloot (or the addon button next to the minimap).
+  FastLoot window: /fastloot or the round button at the minimap.
 
-  Top: the rules as checkboxes plus the quality threshold.
-  Below: two item grids, like a small bank:
-    NEVER LOOT   - drag an item from your bags here
-    ALWAYS LOOT  - drag an item from your bags here
-  Hover an icon for the tooltip, right-click it to take it off the list.
-  Dropping an item on one list moves it off the other.
+  Laid out top to bottom by what depends on what:
+    title bar         FastLoot on/off (master switch)
+    HOW TO LOOT       Take everything  |  Filter by rules below
+    FILTER TAKES      quest items, profession mats, grey, white, quality,
+                      close the loot window -- dimmed while not filtering
+    EXTRAS            mob drops in tooltip, roll results panel (always work)
+    NEVER / ALWAYS    two item grids for filter mode: drag items from bags,
+                      right-click an icon to remove it
 ]]
 
 local FL = _G.FastLoot
@@ -21,6 +23,8 @@ local ROWS = 4
 local PAD = 12
 local WIDTH = PAD * 2 + COLS * SLOT + (COLS - 1) * GAP
 local GRID_H = ROWS * SLOT + (ROWS - 1) * GAP
+local COL1, COL2 = PAD - 4, PAD + 156
+local GRIDS_TOP = -284 -- first grid header
 local QUALITY = {
 	[0] = { "grey", 0.62, 0.62, 0.62 },
 	[1] = { "white", 1, 1, 1 },
@@ -45,7 +49,7 @@ end
 local BACKDROP = BackdropTemplateMixin and "BackdropTemplate" or nil
 
 local win = CreateFrame("Frame", "FastLootWindow", UIParent, BACKDROP)
-win:SetSize(WIDTH, 142 + 2 * (GRID_H + 34))
+win:SetSize(WIDTH, -GRIDS_TOP + 2 * (GRID_H + 34) + 4)
 win:SetPoint("CENTER", 0, 60)
 win:SetFrameStrata("DIALOG")
 win:SetClampedToScreen(true)
@@ -68,8 +72,29 @@ local close = CreateFrame("Button", nil, win, "UIPanelCloseButton")
 close:SetPoint("TOPRIGHT", 2, 2)
 
 ------------------------------------------------------------------------
--- Rules
+-- Building blocks
 ------------------------------------------------------------------------
+
+local function Section(text, y, note)
+	local fs = win:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+	fs:SetPoint("TOPLEFT", PAD, y)
+	fs:SetText(text)
+	local line = win:CreateTexture(nil, "ARTWORK")
+	line:SetColorTexture(1, 0.82, 0, 0.18)
+	line:SetHeight(1)
+	line:SetPoint("LEFT", fs, "RIGHT", 6, 0)
+	line:SetPoint("RIGHT", win, "RIGHT", -PAD, 0)
+	local n
+	if note then
+		n = win:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+		n:SetPoint("TOPLEFT", PAD, y - 13)
+		n:SetWidth(WIDTH - 2 * PAD)
+		n:SetJustifyH("LEFT")
+		n:SetWordWrap(false)
+		n:SetText(note)
+	end
+	return fs, n
+end
 
 local checks = {}
 local function Check(key, label, x, y, onClick)
@@ -87,26 +112,47 @@ local function Check(key, label, x, y, onClick)
 		end
 		FL.RefreshWindow()
 	end)
-	checks[key] = cb
+	if key then
+		checks[key] = cb
+	end
 	return cb
 end
 
-local col1, col2, col3 = PAD - 4, PAD + 96, PAD + 196
-Check("filter", "Filter mode", col1, -30, function(on)
-	FL.SetFilter(on)
-end)
-Check("enabled", "FastLoot on", col2, -30)
-Check("close", "Close window", col3, -30)
-Check("quest", "Quest items", col1, -52)
-Check("prof", "Profession mats", col2, -52)
-Check("grey", "Grey", col1, -74)
-Check("white", "White", col2, -74)
-Check("drops", "Mob drops tip", col3, -74)
-Check("rolls", "Roll results", col1, -96)
+------------------------------------------------------------------------
+-- Title bar: master switch
+------------------------------------------------------------------------
 
+Check("enabled", "FastLoot on", WIDTH - 130, -6)
+
+------------------------------------------------------------------------
+-- HOW TO LOOT (two choices, one is always on)
+------------------------------------------------------------------------
+
+Section("HOW TO LOOT", -36)
+local takeAll = Check(nil, "Take everything", COL1, -50, function()
+	FL.SetFilter(false)
+end)
+local takeFiltered = Check(nil, "Filter by rules below", COL2, -50, function()
+	FL.SetFilter(true)
+end)
+
+------------------------------------------------------------------------
+-- FILTER TAKES (only in filter mode)
+------------------------------------------------------------------------
+
+local filterWidgets = {}
+local _, filterNote = Section("FILTER TAKES", -82, "Only in filter mode. Shift while looting takes all.")
+filterWidgets[#filterWidgets + 1] = Check("quest", "Quest items", COL1, -108)
+filterWidgets[#filterWidgets + 1] = Check("prof", "Profession materials", COL2, -108)
+filterWidgets[#filterWidgets + 1] = Check("grey", "Grey items", COL1, -130)
+filterWidgets[#filterWidgets + 1] = Check("white", "White items", COL2, -130)
+
+local qualLabel = win:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+qualLabel:SetPoint("TOPLEFT", COL1 + 4, -158)
+qualLabel:SetText("Any item of quality")
 local qual = CreateFrame("Button", nil, win, BACKDROP)
-qual:SetSize(96, 20)
-qual:SetPoint("TOPLEFT", col3 + 4, -54)
+qual:SetSize(86, 20)
+qual:SetPoint("LEFT", qualLabel, "RIGHT", 6, 0)
 Flat(qual, 0.15, 0.15, 0.18, 1)
 qual.text = qual:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 qual.text:SetPoint("CENTER")
@@ -126,11 +172,23 @@ qual:SetScript("OnEnter", function(self)
 	GameTooltip:Show()
 end)
 qual:SetScript("OnLeave", GameTooltip_Hide)
+filterWidgets[#filterWidgets + 1] = qualLabel
+filterWidgets[#filterWidgets + 1] = qual
+filterWidgets[#filterWidgets + 1] = Check("close", "Leave the rest and close the loot window", COL1, -176)
 
-local hint = win:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-hint:SetPoint("TOPLEFT", PAD, -122)
-hint:SetPoint("RIGHT", -PAD, 0)
-hint:SetJustifyH("LEFT")
+------------------------------------------------------------------------
+-- EXTRAS (work in both modes)
+------------------------------------------------------------------------
+
+Section("EXTRAS", -204)
+Check("drops", "Drops in mob tooltip", COL1, -218)
+Check("rolls", "Group roll results", COL2, -218)
+
+------------------------------------------------------------------------
+-- ITEM LISTS (filter mode)
+------------------------------------------------------------------------
+
+Section("ITEM LISTS", -250, "Drag items here from bags. Right-click to remove.")
 
 ------------------------------------------------------------------------
 -- Item grids
@@ -218,11 +276,11 @@ local function MakeGrid(list, label, color, top)
 		b:Hide()
 		buttons[i] = b
 	end
-	return { list = list, buttons = buttons, count = count, empty = empty }
+	return { list = list, buttons = buttons, count = count, empty = empty, zone = zone }
 end
 
-local NEVER = MakeGrid("ignore", "NEVER LOOT", { 1, 0.35, 0.3 }, -140)
-local ALWAYS = MakeGrid("always", "ALWAYS LOOT", { 0.35, 0.9, 0.45 }, -140 - GRID_H - 34)
+local NEVER = MakeGrid("ignore", "NEVER LOOT", { 1, 0.35, 0.3 }, GRIDS_TOP)
+local ALWAYS = MakeGrid("always", "ALWAYS LOOT", { 0.35, 0.9, 0.45 }, GRIDS_TOP - GRID_H - 34)
 
 local function FillGrid(grid)
 	local entries = {}
@@ -255,14 +313,24 @@ function FL.RefreshWindow()
 	for key, cb in pairs(checks) do
 		cb:SetChecked(FastLootDB[key] and true or false)
 	end
+	local filtering = FastLootDB.filter and true or false
+	takeAll:SetChecked(not filtering)
+	takeFiltered:SetChecked(filtering)
 	local q = QUALITY[FastLootDB.minQuality or 2] or QUALITY[2]
-	qual.text:SetText(q[1] .. "+")
+	qual.text:SetText(q[1] .. " and better")
 	qual.text:SetTextColor(q[2], q[3], q[4])
-	if FastLootDB.filter then
-		hint:SetText("Filter on: game auto loot is off. Hold Shift while looting to take everything.")
-	else
-		hint:SetText("Filter off: everything is looted. The lists and rules apply in filter mode.")
+	-- The filter rules and lists only matter in filter mode: dim them otherwise.
+	local a = filtering and 1 or 0.4
+	for _, w in ipairs(filterWidgets) do
+		w:SetAlpha(a)
 	end
+	filterNote:SetAlpha(filtering and 1 or 0.7)
+	NEVER.zone:SetAlpha(filtering and 1 or 0.55)
+	ALWAYS.zone:SetAlpha(filtering and 1 or 0.55)
+	-- Everything is off while FastLoot itself is off.
+	local all = FastLootDB.enabled and 1 or 0.45
+	takeAll:SetAlpha(all)
+	takeFiltered:SetAlpha(all)
 	FillGrid(NEVER)
 	FillGrid(ALWAYS)
 end
