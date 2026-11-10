@@ -224,5 +224,43 @@ local okUI, errUI = pcall(dofile, "FastLootUI.lua")
 Check(okUI, "window file loads " .. tostring(errUI or ""))
 Check(type(FL.ToggleWindow) == "function", "window toggle exists")
 
+-- Mob drops: data file, parsing, merging with your stats
+TooltipDataProcessor, Enum.TooltipDataType = nil, nil
+GameTooltip = Stub()
+local okData = pcall(dofile, "Data/DropData.lua")
+Check(okData and type(FastLootDropData) == "table", "drop data loads")
+Check(FastLootDropData[2559] ~= nil, "Highland Lurker (2559) has drops")
+local okDrops, errDrops = pcall(dofile, "FastLootDrops.lua")
+Check(okDrops, "drops module loads " .. tostring(errDrops or ""))
+
+Check(FL.NpcIDFromGUID("Creature-0-4372-0-1001-2559-00004A1B2C") == 2559, "npc id from creature GUID")
+Check(FL.NpcIDFromGUID("Player-91-0ABCDEF") == nil, "player GUID is not an npc")
+Check(FL.NpcIDFromGUID(nil) == nil, "nil GUID")
+
+local parsed = FL.ParseDrops("3685:51;4512:33q;1711:3.9")
+Check(#parsed == 3 and parsed[2].quest and parsed[3].chance == 3.9, "parse drop string")
+
+local data = { [7] = "100:50;200:5q" }
+local stats = { [7] = { k = 4, i = { [200] = 1, [300] = 3 } } }
+local rows, kills = FL.DropRows(7, data, stats)
+Check(kills == 4 and #rows == 3, "db rows merged with your stats")
+Check(rows[1].item == 300 and rows[1].seen == 3, "your-only item sorted by your rate (75%)")
+Check(rows[2].item == 100 and rows[3].item == 200 and rows[3].seen == 1 and rows[3].quest, "db items keep chance, quest flag and your count")
+
+FastLootDB.stats = {}
+FL.CountKill("g1", 7)
+FL.CountKill("g1", 7)
+Check(FastLootDB.stats[7].k == 1, "a kill counts once per mob")
+FL.CountItem("g2", 7, 100)
+FL.CountItem("g2", 7, 100)
+Check(FastLootDB.stats[7].k == 2 and FastLootDB.stats[7].i[100] == 1, "looting an uncounted corpse counts the kill, items once")
+
+loot = { { id = 555, name = "Fang" } }
+function GetLootSourceInfo()
+	return "Creature-0-1-0-1-2559-0000000001", 1
+end
+FL.RecordLoot()
+Check(FastLootDB.stats[2559] and FastLootDB.stats[2559].i[555] == 1, "loot window recorded for the mob")
+
 io.write(string.format("%d tests, %d failed\n", total, fails))
 os.exit(fails == 0 and 0 or 1)

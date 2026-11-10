@@ -62,6 +62,7 @@ local DEFAULTS = {
 	grey = false,
 	white = false,
 	minQuality = 2, -- 0 grey, 1 white, 2 green, 3 blue, 4 epic
+	drops = true, -- drop list in mob tooltips (FastLootDrops.lua)
 }
 
 function FL.InitDB()
@@ -336,6 +337,10 @@ frame:SetScript("OnEvent", function(_, event, arg)
 		end
 		return
 	end
+	-- Drop statistics read the slots before anything is taken.
+	if FL.RecordLoot then
+		pcall(FL.RecordLoot)
+	end
 	local db = FastLootDB
 	if not (db and db.enabled) then
 		return
@@ -471,6 +476,7 @@ local function Help()
 	print("  /fastloot remove <item>  take it off both lists")
 	print("  /fastloot list           show both lists")
 	print("  /fastloot quest | prof | grey | white | close   toggle a rule")
+	print("  /fastloot drops          drop list in mob tooltips (hold Shift to expand)")
 	print("  /fastloot quality <0-5>  take this quality and better (2 = green)")
 	print("  /fastloot status         current settings")
 end
@@ -514,7 +520,7 @@ SlashCmdList.FASTLOOT = function(msg)
 	elseif cmd == "list" then
 		PrintList("never", db.ignore)
 		PrintList("always", db.always)
-	elseif cmd == "quest" or cmd == "prof" or cmd == "grey" or cmd == "white" or cmd == "close" then
+	elseif cmd == "quest" or cmd == "prof" or cmd == "grey" or cmd == "white" or cmd == "close" or cmd == "drops" then
 		db[cmd] = not db[cmd]
 		Print(cmd .. ": " .. OnOff(db[cmd]))
 	elseif cmd == "quality" then

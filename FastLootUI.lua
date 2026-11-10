@@ -101,6 +101,7 @@ Check("quest", "Quest items", col1, -52)
 Check("prof", "Profession mats", col2, -52)
 Check("grey", "Grey", col1, -74)
 Check("white", "White", col2, -74)
+Check("drops", "Mob drops tip", col3, -74)
 
 local qual = CreateFrame("Button", nil, win, BACKDROP)
 qual:SetSize(96, 20)
