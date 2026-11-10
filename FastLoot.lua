@@ -481,6 +481,7 @@ local function Help()
 	print("  /fastloot rolls          roll results panel and \"for you\" marks on roll windows")
 	print("  /fastloot rollsmove | rollstest   move the rolls panel / show a sample")
 	print("  /fastloot quality <0-5>  take this quality and better (2 = green)")
+	print("  /fastloot minimap        show or hide the minimap button")
 	print("  /fastloot status         current settings")
 end
 
@@ -534,6 +535,12 @@ SlashCmdList.FASTLOOT = function(msg)
 		else
 			Print("quality 0-5: 0 grey, 1 white, 2 green, 3 blue, 4 epic")
 		end
+	elseif cmd == "minimap" then
+		db.minimap = db.minimap == false
+		if FL.PlaceMinimapButton then
+			FL.PlaceMinimapButton()
+		end
+		Print("minimap button: " .. OnOff(db.minimap))
 	elseif cmd == "rollsmove" and FL.Rolls then
 		FL.rollsUnlocked = not FL.rollsUnlocked
 		FL.Rolls.SetUnlocked(FL.rollsUnlocked)

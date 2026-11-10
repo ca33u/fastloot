@@ -333,5 +333,14 @@ Check(J({ classID = 4, subclassID = 3, equipLoc = "INVTYPE_FEET", minLevel = 20,
 Check(J({ classID = 4, subclassID = 8, equipLoc = "INVTYPE_RELIC", minLevel = 20, ilvl = 30 }, me) == "unusable", "druid idol: can't use")
 Check(J({ classID = 0, subclassID = 0, equipLoc = "", ilvl = 5 }, me) == nil, "potion: no verdict")
 
+-- Minimap button
+Minimap = Stub()
+local okMini, errMini = pcall(dofile, "FastLootMinimap.lua")
+Check(okMini, "minimap module loads " .. tostring(errMini or ""))
+local mx, my = FL.MinimapPoint(0, 100, 100, 140, 1, 1)
+Check(math.abs(mx - 178) < 0.01 and math.abs(my - 100) < 0.01, "angle 0 puts the button right of the minimap")
+mx, my = FL.MinimapPoint(90, 100, 100, 140, 2, 1)
+Check(math.abs(mx - 200) < 0.01 and math.abs(my - 356) < 0.01, "angle 90, minimap scale 2: above, in UIParent units")
+
 io.write(string.format("%d tests, %d failed\n", total, fails))
 os.exit(fails == 0 and 0 or 1)
