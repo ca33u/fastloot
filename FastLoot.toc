@@ -9,6 +9,7 @@
 ## Category: Inventory
 ## SavedVariables: FastLootDB
 ## AddonCompartmentFunc: FastLoot_OnAddonCompartmentClick
+## X-Wago-ID: 56nbDp69
 
 FastLoot.lua
 FastLootUI.lua
