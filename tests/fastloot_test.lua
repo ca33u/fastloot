@@ -307,8 +307,36 @@ end
 Check(#R.items == 1 and R.items[1].done and R.items[1].winner == "Saz", "one item, done, you won")
 local sorted = R.Sorted(R.items[1])
 Check(sorted[1].name == "Saz" and sorted[1].roll == 87 and sorted[2].name == "Milk" and sorted[3].choice == "pass", "winner first, then greed, then pass")
-R.Prune(t + 61)
-Check(#R.items == 0, "finished roll disappears after 60 s")
+R.Prune(t + 31)
+Check(#R.items == 0, "finished roll disappears after 30 s")
+
+-- Modern client: every line starts with a hidden loot history link.
+local H = "|HlootHistory:%d|h[Loot]|h: "
+LOOT_ROLL_GREED = H .. "%s has selected Greed for: %s"
+LOOT_ROLL_ROLLED_GREED = H .. "Greed Roll - %d for %s by %s"
+LOOT_ROLL_WON = H .. "%s won: %s"
+LOOT_ROLL_YOU_WON = H .. "You won: %s"
+R.Recompile()
+local citrine = "|cff1eff00|Hitem:3864::::::::|h[Citrine]|h|r"
+local HL = "|HlootHistory:778297345|h[Loot]|h: "
+ev = R.ParseMessage(HL .. "Greed Roll - 21 for " .. citrine .. " by Farseer Radz", "Saz")
+Check(ev and ev.kind == "roll" and ev.roll == 21 and ev.player == "Farseer Radz" and ev.item == citrine, "modern greed roll: history id skipped")
+ev = R.ParseMessage(HL .. "Farseer Radz has selected Greed for: " .. citrine, "Saz")
+Check(ev and ev.player == "Farseer Radz" and ev.item == citrine, "modern greed choice")
+ev = R.ParseMessage(HL .. "Farseer Radz won: " .. citrine, "Saz")
+Check(ev and ev.kind == "won" and ev.player == "Farseer Radz", "modern winner")
+Check(R.ParseMessage(HL .. "Farseer Radz won: nothing", "Saz") == nil, "line without an item link is ignored")
+
+-- A roll whose result never arrives disappears after its timer + grace + keep.
+R.items = {}
+local e = R.Entry(citrine, 2000)
+e.ends = 2060
+R.Prune(2065)
+Check(#R.items == 1 and not e.done, "still rolling")
+R.Prune(2071)
+Check(e.done, "timer over: marked finished")
+R.Prune(2071 + 31)
+Check(#R.items == 0, "then it disappears")
 
 -- Is it for you? (paladin, level 30, knows mail, shields, 1h swords; not plate yet)
 local known = { [8737] = true, [9116] = true, [201] = true, [9077] = true, [9078] = true }

@@ -22,10 +22,12 @@
 
   The data comes from the game's own loot roll messages in the loot chat,
   matched with the client's localized strings (works on any language).
-  An item stays 60 seconds after the roll ends; the panel hides when empty.
+  An item stays 30 seconds after the roll ends; the panel hides when empty.
+  Right-click the panel to clear it at once.
 
   /fastloot rolls       turn the panel on or off
-  /fastloot rollsmove   unlock / lock the panel to drag it
+  /fastloot rollsmove   keep the panel shown while empty, to place it
+  (the panel can be dragged with the mouse at any time)
   /fastloot rollstest   show a sample roll
 ]]
 
@@ -37,7 +39,7 @@ end
 local R = {}
 FL.Rolls = R
 
-local KEEP = 60     -- seconds an item stays after its roll ends
+local KEEP = 30     -- seconds an item stays after its roll ends
 local MAX_ITEMS = 4
 local MAX_PLAYERS = 8
 
@@ -107,7 +109,21 @@ local function Compile()
 		local fmt = _G[m[3]]
 		local pat, order = R.FormatToPattern(fmt)
 		if pat then
-			compiled[#compiled + 1] = { kind = m[1], choice = m[2], pat = pat, order = order, fields = m[4], self = m[3]:find("SELF") or m[3] == "LOOT_ROLL_YOU_WON" }
+			-- Modern clients start these lines with a hidden loot history link,
+			-- "|HlootHistory:%d|h[Loot]|h: ...": one extra leading argument.
+			local fields = m[4]
+			local extra = #order - #fields
+			if extra > 0 then
+				local shifted = {}
+				for i = 1, extra do
+					shifted[i] = "_history"
+				end
+				for _, f in ipairs(fields) do
+					shifted[#shifted + 1] = f
+				end
+				fields = shifted
+			end
+			compiled[#compiled + 1] = { kind = m[1], choice = m[2], pat = pat, order = order, fields = fields, self = m[3]:find("SELF") or m[3] == "LOOT_ROLL_YOU_WON" }
 		end
 	end
 	-- The most fixed text first: "You won: %s" must win over "%s won: %s",
@@ -121,6 +137,10 @@ local function Compile()
 	table.sort(compiled, function(a, b)
 		return a.literal > b.literal
 	end)
+end
+
+R.Recompile = function()
+	compiled = nil
 end
 
 -- Returns { kind, choice, player, item, roll } or nil.
@@ -146,8 +166,13 @@ function R.ParseMessage(msg, selfName)
 			if c.self then
 				out.player = selfName
 			end
+			out._history = nil
 			if out.roll then
 				out.roll = tonumber(out.roll)
+			end
+			-- Sanity: the item is always an item link.
+			if type(out.item) ~= "string" or not out.item:find("|Hitem:", 1, true) then
+				return nil
 			end
 			return out
 		end
@@ -227,9 +252,15 @@ function R.Sorted(e)
 	return list
 end
 
+local GRACE = 10 -- seconds after the roll timer for the result to arrive
+
 function R.Prune(now)
 	for i = #R.items, 1, -1 do
 		local e = R.items[i]
+		-- The roll timer ran out but no result line came: treat it as finished.
+		if not e.done and e.ends and now > e.ends + GRACE then
+			e.done, e.doneAt = true, e.ends + GRACE
+		end
 		if (e.done and now - e.doneAt > KEEP) or (not e.done and now - e.started > 300) then
 			table.remove(R.items, i)
 		end
@@ -395,6 +426,14 @@ panel:SetSize(WIDTH, 40)
 panel:SetFrameStrata("MEDIUM")
 panel:SetClampedToScreen(true)
 panel:SetMovable(true)
+-- Always draggable: grab the panel anywhere and move it; the spot is saved.
+-- Right-click clears it.
+panel:EnableMouse(true)
+panel:SetScript("OnMouseUp", function(_, button)
+	if button == "RightButton" then
+		R.Clear()
+	end
+end)
 panel:RegisterForDrag("LeftButton")
 panel:SetScript("OnDragStart", panel.StartMoving)
 panel:SetScript("OnDragStop", function(self)
@@ -529,12 +568,19 @@ function R.Render(now)
 		local fs = Line(li)
 		fs:ClearAllPoints()
 		fs:SetPoint("TOPLEFT", 8, y)
-		fs:SetText("|cff888888drag to move, /fastloot rollsmove to lock|r")
+		fs:SetText("|cff888888drag to move, /fastloot rollsmove to hide|r")
 		fs:Show()
 		y = y - LINE
 	end
 	panel:SetHeight(-y + 4)
 	panel:Show()
+end
+
+function R.Clear()
+	for i = #R.items, 1, -1 do
+		R.items[i] = nil
+	end
+	R.Render(GetTime())
 end
 
 local function ApplyPosition()
@@ -547,9 +593,10 @@ local function ApplyPosition()
 	end
 end
 
+-- The panel can always be dragged; "unlocked" only keeps it visible while
+-- empty, so it can be placed before any roll happens.
 function R.SetUnlocked(on)
 	unlocked = on
-	panel:EnableMouse(on)
 	R.Render(GetTime())
 end
 

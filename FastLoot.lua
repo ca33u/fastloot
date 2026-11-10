@@ -479,7 +479,7 @@ local function Help()
 	print("  /fastloot quest | prof | grey | white | close   toggle a rule")
 	print("  /fastloot drops          drop list in mob tooltips (hold Shift to expand)")
 	print("  /fastloot rolls          roll results panel and \"for you\" marks on roll windows")
-	print("  /fastloot rollsmove | rollstest   move the rolls panel / show a sample")
+	print("  /fastloot rollsmove | rollstest   show the empty rolls panel to place it / show a sample")
 	print("  /fastloot quality <0-5>  take this quality and better (2 = green)")
 	print("  /fastloot minimap        show or hide the minimap button")
 	print("  /fastloot status         current settings")
@@ -544,7 +544,7 @@ SlashCmdList.FASTLOOT = function(msg)
 	elseif cmd == "rollsmove" and FL.Rolls then
 		FL.rollsUnlocked = not FL.rollsUnlocked
 		FL.Rolls.SetUnlocked(FL.rollsUnlocked)
-		Print(FL.rollsUnlocked and "rolls panel unlocked: drag it, then /fastloot rollsmove" or "rolls panel locked")
+		Print(FL.rollsUnlocked and "rolls panel shown: drag it where you want, then /fastloot rollsmove" or "rolls panel hides again when there are no rolls")
 	elseif cmd == "rollstest" and FL.Rolls then
 		FL.Rolls.Test()
 	elseif cmd == "status" then
