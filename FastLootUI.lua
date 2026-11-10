@@ -20,11 +20,12 @@ local COLS = 9
 local SLOT = 30
 local GAP = 4
 local ROWS = 4
-local PAD = 12
+local PAD = 18 -- room for the dialog border
 local WIDTH = PAD * 2 + COLS * SLOT + (COLS - 1) * GAP
 local GRID_H = ROWS * SLOT + (ROWS - 1) * GAP
 local COL1, COL2 = PAD - 4, PAD + 156
-local GRIDS_TOP = -284 -- first grid header
+local Y0 = -26 -- everything below the title header moves down by this
+local GRIDS_TOP = -284 + Y0 -- first grid header
 local QUALITY = {
 	[0] = { "grey", 0.62, 0.62, 0.62 },
 	[1] = { "white", 1, 1, 1 },
@@ -49,7 +50,7 @@ end
 local BACKDROP = BackdropTemplateMixin and "BackdropTemplate" or nil
 
 local win = CreateFrame("Frame", "FastLootWindow", UIParent, BACKDROP)
-win:SetSize(WIDTH, -GRIDS_TOP + 2 * (GRID_H + 34) + 4)
+win:SetSize(WIDTH, -GRIDS_TOP + 2 * (GRID_H + 34) + 14)
 win:SetPoint("CENTER", 0, 60)
 win:SetFrameStrata("DIALOG")
 win:SetClampedToScreen(true)
@@ -58,18 +59,34 @@ win:EnableMouse(true)
 win:RegisterForDrag("LeftButton")
 win:SetScript("OnDragStart", win.StartMoving)
 win:SetScript("OnDragStop", win.StopMovingOrSizing)
-Flat(win, 0.05, 0.05, 0.07, 0.94)
+-- Classic Warcraft dialog look: the game's own dialog border and background.
+if win.SetBackdrop then
+	win:SetBackdrop({
+		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+		edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+		tile = true,
+		tileSize = 32,
+		edgeSize = 32,
+		insets = { left = 11, right = 12, top = 12, bottom = 11 },
+	})
+	win:SetBackdropColor(1, 1, 1, 0.95)
+end
 win:Hide()
 if UISpecialFrames then
 	table.insert(UISpecialFrames, "FastLootWindow") -- Esc closes it
 end
 
+-- Title on the classic dialog header plate.
+local header = win:CreateTexture(nil, "ARTWORK")
+header:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Header")
+header:SetSize(256, 64)
+header:SetPoint("TOP", 0, 12)
 local title = win:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-title:SetPoint("TOPLEFT", PAD, -10)
-title:SetText("|cff7fd4ffFastLoot|r")
+title:SetPoint("TOP", header, "TOP", 0, -14)
+title:SetText("FastLoot")
 
 local close = CreateFrame("Button", nil, win, "UIPanelCloseButton")
-close:SetPoint("TOPRIGHT", 2, 2)
+close:SetPoint("TOPRIGHT", -5, -5)
 
 ------------------------------------------------------------------------
 -- Building blocks
@@ -122,17 +139,17 @@ end
 -- Title bar: master switch
 ------------------------------------------------------------------------
 
-Check("enabled", "FastLoot on", WIDTH - 130, -6)
+Check("enabled", "FastLoot on", COL1, -30)
 
 ------------------------------------------------------------------------
 -- HOW TO LOOT (two choices, one is always on)
 ------------------------------------------------------------------------
 
-Section("HOW TO LOOT", -36)
-local takeAll = Check(nil, "Take everything", COL1, -50, function()
+Section("HOW TO LOOT", -36 + Y0)
+local takeAll = Check(nil, "Take everything", COL1, -50 + Y0, function()
 	FL.SetFilter(false)
 end)
-local takeFiltered = Check(nil, "Filter by rules below", COL2, -50, function()
+local takeFiltered = Check(nil, "Filter by rules below", COL2, -50 + Y0, function()
 	FL.SetFilter(true)
 end)
 
@@ -141,20 +158,20 @@ end)
 ------------------------------------------------------------------------
 
 local filterWidgets = {}
-local _, filterNote = Section("FILTER TAKES", -82, "Only in filter mode. Shift while looting takes all.")
-filterWidgets[#filterWidgets + 1] = Check("quest", "Quest items", COL1, -108)
-filterWidgets[#filterWidgets + 1] = Check("prof", "Profession materials", COL2, -108)
-filterWidgets[#filterWidgets + 1] = Check("grey", "Grey items", COL1, -130)
-filterWidgets[#filterWidgets + 1] = Check("white", "White items", COL2, -130)
+local _, filterNote = Section("FILTER TAKES", -82 + Y0, "Only in filter mode. Shift while looting takes all.")
+filterWidgets[#filterWidgets + 1] = Check("quest", "Quest items", COL1, -108 + Y0)
+filterWidgets[#filterWidgets + 1] = Check("prof", "Profession materials", COL2, -108 + Y0)
+filterWidgets[#filterWidgets + 1] = Check("grey", "Grey items", COL1, -130 + Y0)
+filterWidgets[#filterWidgets + 1] = Check("white", "White items", COL2, -130 + Y0)
 
 local qualLabel = win:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-qualLabel:SetPoint("TOPLEFT", COL1 + 4, -158)
+qualLabel:SetPoint("TOPLEFT", COL1 + 4, -158 + Y0)
 qualLabel:SetText("Any item of quality")
-local qual = CreateFrame("Button", nil, win, BACKDROP)
-qual:SetSize(86, 20)
+-- The game's red panel button, like the buttons in Blizzard dialogs.
+local qual = CreateFrame("Button", nil, win, "UIPanelButtonTemplate")
+qual:SetSize(120, 22)
 qual:SetPoint("LEFT", qualLabel, "RIGHT", 6, 0)
-Flat(qual, 0.15, 0.15, 0.18, 1)
-qual.text = qual:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+qual.text = qual:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 qual.text:SetPoint("CENTER")
 qual:SetScript("OnClick", function(_, button)
 	local q = FastLootDB.minQuality or 2
@@ -174,21 +191,21 @@ end)
 qual:SetScript("OnLeave", GameTooltip_Hide)
 filterWidgets[#filterWidgets + 1] = qualLabel
 filterWidgets[#filterWidgets + 1] = qual
-filterWidgets[#filterWidgets + 1] = Check("close", "Leave the rest and close the loot window", COL1, -176)
+filterWidgets[#filterWidgets + 1] = Check("close", "Leave the rest and close the loot window", COL1, -176 + Y0)
 
 ------------------------------------------------------------------------
 -- EXTRAS (work in both modes)
 ------------------------------------------------------------------------
 
-Section("EXTRAS", -204)
-Check("drops", "Drops in mob tooltip", COL1, -218)
-Check("rolls", "Group roll results", COL2, -218)
+Section("EXTRAS", -204 + Y0)
+Check("drops", "Drops in mob tooltip", COL1, -218 + Y0)
+Check("rolls", "Group roll results", COL2, -218 + Y0)
 
 ------------------------------------------------------------------------
 -- ITEM LISTS (filter mode)
 ------------------------------------------------------------------------
 
-Section("ITEM LISTS", -250, "Drag items here from bags. Right-click to remove.")
+Section("ITEM LISTS", -250 + Y0, "Drag items here from bags. Right-click to remove.")
 
 ------------------------------------------------------------------------
 -- Item grids
