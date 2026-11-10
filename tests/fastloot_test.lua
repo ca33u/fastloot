@@ -370,5 +370,9 @@ Check(math.abs(mx - 178) < 0.01 and math.abs(my - 100) < 0.01, "angle 0 puts the
 mx, my = FL.MinimapPoint(90, 100, 100, 140, 2, 1)
 Check(math.abs(mx - 200) < 0.01 and math.abs(my - 356) < 0.01, "angle 90, minimap scale 2: above, in UIParent units")
 
+Check(FL.WEBSITE_URL == "https://addicted.sh", "website address")
+local okCopy, errCopy = pcall(FL.ShowCopy, FL.WEBSITE_URL)
+Check(okCopy, "copy window opens " .. tostring(errCopy or ""))
+
 io.write(string.format("%d tests, %d failed\n", total, fails))
 os.exit(fails == 0 and 0 or 1)

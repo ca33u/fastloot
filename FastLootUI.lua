@@ -50,7 +50,8 @@ end
 local BACKDROP = BackdropTemplateMixin and "BackdropTemplate" or nil
 
 local win = CreateFrame("Frame", "FastLootWindow", UIParent, BACKDROP)
-win:SetSize(WIDTH, -GRIDS_TOP + 2 * (GRID_H + 34) + 14)
+local FOOTER_H = 18 -- "by addicted" line at the bottom
+win:SetSize(WIDTH, -GRIDS_TOP + 2 * (GRID_H + 34) + 14 + FOOTER_H)
 win:SetPoint("CENTER", 0, 60)
 win:SetFrameStrata("DIALOG")
 win:SetClampedToScreen(true)
@@ -87,6 +88,100 @@ title:SetText("FastLoot")
 
 local close = CreateFrame("Button", nil, win, "UIPanelCloseButton")
 close:SetPoint("TOPRIGHT", -5, -5)
+
+------------------------------------------------------------------------
+-- Footer: studio credit and website. The game cannot open web pages, so
+-- clicking the address shows it selected, ready for Cmd+C / Ctrl+C.
+------------------------------------------------------------------------
+
+FL.WEBSITE = "addicted.sh"
+FL.WEBSITE_URL = "https://addicted.sh"
+local RU = GetLocale and GetLocale() == "ruRU"
+
+local copy
+function FL.ShowCopy(url)
+	if not copy then
+		copy = CreateFrame("Frame", "FastLootCopyDialog", UIParent, BACKDROP)
+		copy:SetSize(330, 104)
+		copy:SetPoint("CENTER", 0, 120)
+		copy:SetFrameStrata("FULLSCREEN_DIALOG")
+		copy:SetToplevel(true)
+		copy:EnableMouse(true)
+		if copy.SetBackdrop then
+			copy:SetBackdrop({
+				bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+				edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+				tile = true, tileSize = 32, edgeSize = 32,
+				insets = { left = 11, right = 12, top = 12, bottom = 11 },
+			})
+		end
+		local hint = copy:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+		hint:SetPoint("TOP", 0, -22)
+		hint:SetText(RU and "Нажмите Cmd+C (Ctrl+C), чтобы скопировать адрес" or "Press Cmd+C (Ctrl+C) to copy the address")
+		local eb = CreateFrame("EditBox", nil, copy, "InputBoxTemplate")
+		eb:SetSize(250, 22)
+		eb:SetPoint("TOP", 0, -44)
+		eb:SetAutoFocus(true)
+		eb:SetJustifyH("CENTER")
+		eb:SetScript("OnEscapePressed", function() copy:Hide() end)
+		eb:SetScript("OnEnterPressed", function() copy:Hide() end)
+		eb:SetScript("OnTextChanged", function(self, user)
+			if user then -- keep the address intact
+				self:SetText(copy.url or "")
+				self:HighlightText()
+			end
+		end)
+		eb:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+		copy.eb = eb
+		local x = CreateFrame("Button", nil, copy, "UIPanelCloseButton")
+		x:SetPoint("TOPRIGHT", -5, -5)
+		local done = CreateFrame("Button", nil, copy, "UIPanelButtonTemplate")
+		done:SetSize(90, 20)
+		done:SetPoint("BOTTOM", 0, 16)
+		done:SetText(OKAY or "OK")
+		done:SetScript("OnClick", function() copy:Hide() end)
+		if UISpecialFrames then
+			table.insert(UISpecialFrames, "FastLootCopyDialog")
+		end
+	end
+	copy.url = url
+	copy.eb:SetText(url)
+	copy:Show()
+	copy.eb:SetFocus()
+	copy.eb:HighlightText()
+end
+
+local footer = win:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+footer:SetPoint("BOTTOMLEFT", PAD, 16)
+local version = (C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata)
+local okV, ver = pcall(version or function() end, "FastLoot", "Version")
+footer:SetText(string.format("FastLoot %s  ·  by addicted  ·  GPL-3.0  · ", okV and ver or ""))
+local link = CreateFrame("Button", nil, win)
+link.text = link:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+link.text:SetPoint("LEFT")
+link.text:SetText(FL.WEBSITE)
+link.text:SetTextColor(0.5, 0.83, 1)
+local linkW = link.text:GetStringWidth()
+link:SetSize((type(linkW) == "number" and linkW > 0 and linkW or 60) + 2, 14)
+link:SetPoint("LEFT", footer, "RIGHT", 2, 0)
+link:SetScript("OnEnter", function(self)
+	link.text:SetTextColor(0.75, 0.92, 1)
+	if GameTooltip then
+		GameTooltip:SetOwner(self, "ANCHOR_TOP")
+		GameTooltip:SetText(FL.WEBSITE_URL)
+		GameTooltip:AddLine(RU and "Щёлкните, чтобы скопировать адрес" or "Click to copy the address", 0.8, 0.8, 0.8)
+		GameTooltip:Show()
+	end
+end)
+link:SetScript("OnLeave", function()
+	link.text:SetTextColor(0.5, 0.83, 1)
+	if GameTooltip then
+		GameTooltip:Hide()
+	end
+end)
+link:SetScript("OnClick", function()
+	FL.ShowCopy(FL.WEBSITE_URL)
+end)
 
 ------------------------------------------------------------------------
 -- Building blocks

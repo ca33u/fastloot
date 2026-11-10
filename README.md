@@ -1,6 +1,6 @@
 # FastLoot
 
-Быстрый сбор добычи с фильтром для **World of Warcraft: Forever** (Interface 16001).
+Быстрый сбор добычи с фильтром для **World of Warcraft: Forever** (Interface 16001). Студия **addicted** — [addicted.sh](https://addicted.sh).
 
 ## Два режима
 
@@ -100,3 +100,5 @@ python3 -I tools/build_drops.py ClassicDB_1_12_1_z2815.sql Data/DropData.lua
 3. Зайти в игру, в «Модификациях» проверить, что FastLoot включён.
 
 Лицензия: GPL-3.0 (файл `LICENSE`), потому что база дропа `Data/DropData.lua` получена из cMaNGOS classic-db под GPL-3.0. Делиться и выкладывать можно, исходники (Lua) идут в архиве.
+
+© 2026 addicted · [addicted.sh](https://addicted.sh)

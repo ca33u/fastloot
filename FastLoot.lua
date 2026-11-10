@@ -469,6 +469,7 @@ end
 
 local function Help()
 	Print("commands:")
+	print("  |cff7fd4ffFastLoot|r by addicted · |cff7fd4ffaddicted.sh|r")
 	print("  /fastloot                open the window (drag items from bags into the lists)")
 	print("  /fastloot on | off       FastLoot itself")
 	print("  /fastloot filter         filter mode on/off (turns game auto loot off while on)")

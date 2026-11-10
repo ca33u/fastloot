@@ -2,7 +2,9 @@
 ## Title: |cff7fd4ffFastLoot|r
 ## Notes: Takes every item the moment the loot window opens, when auto loot is on.
 ## Notes-ruRU: Мгновенно забирает весь лут, как только открывается окно добычи (если включён автосбор).
-## Author: Saz-Zy
+## Author: addicted
+## X-Website: https://addicted.sh
+## X-License: GPL-3.0
 ## Version: 1.5.0
 ## Category: Inventory
 ## SavedVariables: FastLootDB
