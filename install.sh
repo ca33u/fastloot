@@ -4,5 +4,5 @@ set -e
 SRC="$(cd "$(dirname "$0")" && pwd)"
 DST="/Applications/World of Warcraft/_forever_/Interface/AddOns/FastLoot"
 mkdir -p "$DST"
-cp "$SRC/FastLoot.toc" "$SRC/FastLoot.lua" "$DST/"
+cp "$SRC/FastLoot.toc" "$SRC/FastLoot.lua" "$SRC/FastLootUI.lua" "$DST/"
 echo "FastLoot installed to $DST. Type /reload in the game."
