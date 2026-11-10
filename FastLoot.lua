@@ -63,6 +63,7 @@ local DEFAULTS = {
 	white = false,
 	minQuality = 2, -- 0 grey, 1 white, 2 green, 3 blue, 4 epic
 	drops = true, -- drop list in mob tooltips (FastLootDrops.lua)
+	rolls = true, -- roll results panel and "for you" frames (FastLootRolls.lua)
 }
 
 function FL.InitDB()
@@ -477,6 +478,8 @@ local function Help()
 	print("  /fastloot list           show both lists")
 	print("  /fastloot quest | prof | grey | white | close   toggle a rule")
 	print("  /fastloot drops          drop list in mob tooltips (hold Shift to expand)")
+	print("  /fastloot rolls          roll results panel and \"for you\" marks on roll windows")
+	print("  /fastloot rollsmove | rollstest   move the rolls panel / show a sample")
 	print("  /fastloot quality <0-5>  take this quality and better (2 = green)")
 	print("  /fastloot status         current settings")
 end
@@ -520,7 +523,7 @@ SlashCmdList.FASTLOOT = function(msg)
 	elseif cmd == "list" then
 		PrintList("never", db.ignore)
 		PrintList("always", db.always)
-	elseif cmd == "quest" or cmd == "prof" or cmd == "grey" or cmd == "white" or cmd == "close" or cmd == "drops" then
+	elseif cmd == "quest" or cmd == "prof" or cmd == "grey" or cmd == "white" or cmd == "close" or cmd == "drops" or cmd == "rolls" then
 		db[cmd] = not db[cmd]
 		Print(cmd .. ": " .. OnOff(db[cmd]))
 	elseif cmd == "quality" then
@@ -531,6 +534,12 @@ SlashCmdList.FASTLOOT = function(msg)
 		else
 			Print("quality 0-5: 0 grey, 1 white, 2 green, 3 blue, 4 epic")
 		end
+	elseif cmd == "rollsmove" and FL.Rolls then
+		FL.rollsUnlocked = not FL.rollsUnlocked
+		FL.Rolls.SetUnlocked(FL.rollsUnlocked)
+		Print(FL.rollsUnlocked and "rolls panel unlocked: drag it, then /fastloot rollsmove" or "rolls panel locked")
+	elseif cmd == "rollstest" and FL.Rolls then
+		FL.Rolls.Test()
 	elseif cmd == "status" then
 		PrintStatus()
 	else

@@ -45,7 +45,7 @@ end
 local BACKDROP = BackdropTemplateMixin and "BackdropTemplate" or nil
 
 local win = CreateFrame("Frame", "FastLootWindow", UIParent, BACKDROP)
-win:SetSize(WIDTH, 120 + 2 * (GRID_H + 34))
+win:SetSize(WIDTH, 142 + 2 * (GRID_H + 34))
 win:SetPoint("CENTER", 0, 60)
 win:SetFrameStrata("DIALOG")
 win:SetClampedToScreen(true)
@@ -102,6 +102,7 @@ Check("prof", "Profession mats", col2, -52)
 Check("grey", "Grey", col1, -74)
 Check("white", "White", col2, -74)
 Check("drops", "Mob drops tip", col3, -74)
+Check("rolls", "Roll results", col1, -96)
 
 local qual = CreateFrame("Button", nil, win, BACKDROP)
 qual:SetSize(96, 20)
@@ -127,7 +128,7 @@ end)
 qual:SetScript("OnLeave", GameTooltip_Hide)
 
 local hint = win:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-hint:SetPoint("TOPLEFT", PAD, -100)
+hint:SetPoint("TOPLEFT", PAD, -122)
 hint:SetPoint("RIGHT", -PAD, 0)
 hint:SetJustifyH("LEFT")
 
@@ -220,8 +221,8 @@ local function MakeGrid(list, label, color, top)
 	return { list = list, buttons = buttons, count = count, empty = empty }
 end
 
-local NEVER = MakeGrid("ignore", "NEVER LOOT", { 1, 0.35, 0.3 }, -118)
-local ALWAYS = MakeGrid("always", "ALWAYS LOOT", { 0.35, 0.9, 0.45 }, -118 - GRID_H - 34)
+local NEVER = MakeGrid("ignore", "NEVER LOOT", { 1, 0.35, 0.3 }, -140)
+local ALWAYS = MakeGrid("always", "ALWAYS LOOT", { 0.35, 0.9, 0.45 }, -140 - GRID_H - 34)
 
 local function FillGrid(grid)
 	local entries = {}

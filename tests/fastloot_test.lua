@@ -262,5 +262,76 @@ end
 FL.RecordLoot()
 Check(FastLootDB.stats[2559] and FastLootDB.stats[2559].i[555] == 1, "loot window recorded for the mob")
 
+-- Roll results: English client strings
+LOOT_ROLL_NEED = "%s has selected Need for: %s"
+LOOT_ROLL_GREED = "%s has selected Greed for: %s"
+LOOT_ROLL_PASSED = "%s passed on: %s"
+LOOT_ROLL_NEED_SELF = "You have selected Need for: %s"
+LOOT_ROLL_ROLLED_NEED = "Need Roll - %d for %s by %s"
+LOOT_ROLL_ROLLED_GREED = "Greed Roll - %d for %s by %s"
+LOOT_ROLL_WON = "%s won: %s"
+LOOT_ROLL_YOU_WON = "You won: %s"
+LOOT_ROLL_ALL_PASSED = "Everyone passed on: %s"
+local okRolls, errRolls = pcall(dofile, "FastLootRolls.lua")
+Check(okRolls, "rolls module loads " .. tostring(errRolls or ""))
+local R = FL.Rolls
+
+local pat, order = R.FormatToPattern("Need Roll - %d for %s by %s")
+Check(("Need Roll - 87 for [Boots] by Milk"):match(pat) == "87", "format to pattern escapes '-' and captures numbers")
+pat, order = R.FormatToPattern("%2$s gewinnt: %1$s")
+Check(order[1] == 2 and order[2] == 1, "positional arguments keep their order")
+
+local link = "|cff1eff00|Hitem:2232::::::::|h[Dark Runner Boots]|h|r"
+local ev = R.ParseMessage("Milk has selected Greed for: " .. link, "Saz")
+Check(ev and ev.kind == "choice" and ev.choice == "greed" and ev.player == "Milk" and ev.item == link, "parse greed choice")
+ev = R.ParseMessage("Need Roll - 87 for " .. link .. " by Saz", "Saz")
+Check(ev and ev.kind == "roll" and ev.roll == 87 and ev.player == "Saz" and ev.item == link, "parse need roll")
+ev = R.ParseMessage("You have selected Need for: " .. link, "Saz")
+Check(ev and ev.player == "Saz" and ev.choice == "need", "parse own choice")
+ev = R.ParseMessage("Everyone passed on: " .. link, "Saz")
+Check(ev and ev.kind == "allpass", "parse all passed")
+Check(R.ParseMessage("You receive loot: " .. link, "Saz") == nil, "ordinary loot line ignored")
+
+R.items = {}
+local t = 1000
+for _, msg in ipairs({
+	"Milk has selected Greed for: " .. link,
+	"You have selected Need for: " .. link,
+	"Cirilha passed on: " .. link,
+	"Need Roll - 87 for " .. link .. " by Saz",
+	"Greed Roll - 54 for " .. link .. " by Milk",
+	"You won: " .. link,
+}) do
+	R.Apply(R.ParseMessage(msg, "Saz"), t)
+end
+Check(#R.items == 1 and R.items[1].done and R.items[1].winner == "Saz", "one item, done, you won")
+local sorted = R.Sorted(R.items[1])
+Check(sorted[1].name == "Saz" and sorted[1].roll == 87 and sorted[2].name == "Milk" and sorted[3].choice == "pass", "winner first, then greed, then pass")
+R.Prune(t + 61)
+Check(#R.items == 0, "finished roll disappears after 60 s")
+
+-- Is it for you? (paladin, level 30, knows mail, shields, 1h swords; not plate yet)
+local known = { [8737] = true, [9116] = true, [201] = true, [9077] = true, [9078] = true }
+local me = {
+	level = 30, class = "PALADIN",
+	knows = function(id)
+		return known[id] or false
+	end,
+	equipped = function(slot)
+		return ({ [8] = 25, [16] = 28, [11] = 20, [12] = 30 })[slot]
+	end,
+}
+local J = R.Judge
+Check(J({ classID = 4, subclassID = 3, equipLoc = "INVTYPE_FEET", minLevel = 25, ilvl = 31 }, me) == "upgrade", "mail boots ilvl 31 over 25: upgrade")
+Check(select(2, J({ classID = 4, subclassID = 3, equipLoc = "INVTYPE_FEET", minLevel = 25, ilvl = 31 }, me)) == 6, "upgrade by 6 item levels")
+Check(J({ classID = 4, subclassID = 4, equipLoc = "INVTYPE_FEET", minLevel = 40, ilvl = 45 }, me) == "unusable", "plate before training: can't use")
+Check(J({ classID = 2, subclassID = 15, equipLoc = "INVTYPE_WEAPON", minLevel = 20, ilvl = 30 }, me) == "unusable", "dagger: can't use")
+Check(J({ classID = 4, subclassID = 3, equipLoc = "INVTYPE_HEAD", minLevel = 35, ilvl = 40 }, me) == "level", "mail helm for level 35: later")
+Check(J({ classID = 4, subclassID = 1, equipLoc = "INVTYPE_CLOAK", minLevel = 20, ilvl = 20 }, me) == "upgrade", "cloak into an empty slot: upgrade")
+Check(J({ classID = 4, subclassID = 0, equipLoc = "INVTYPE_FINGER", minLevel = 20, ilvl = 25 }, me) == "upgrade", "ring beats the weaker of two rings")
+Check(J({ classID = 4, subclassID = 3, equipLoc = "INVTYPE_FEET", minLevel = 20, ilvl = 22 }, me) == "usable", "weaker boots: usable, not an upgrade")
+Check(J({ classID = 4, subclassID = 8, equipLoc = "INVTYPE_RELIC", minLevel = 20, ilvl = 30 }, me) == "unusable", "druid idol: can't use")
+Check(J({ classID = 0, subclassID = 0, equipLoc = "", ilvl = 5 }, me) == nil, "potion: no verdict")
+
 io.write(string.format("%d tests, %d failed\n", total, fails))
 os.exit(fails == 0 and 0 or 1)
