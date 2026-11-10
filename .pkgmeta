@@ -1,0 +1,11 @@
+package-as: FastLoot
+
+ignore:
+  - tests
+  - install.sh
+  - package.sh
+  - tools
+  - dist
+  - .github
+  - .pkgmeta
+  - RELEASING.md
