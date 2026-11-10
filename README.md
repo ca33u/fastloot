@@ -90,3 +90,13 @@ python3 -I tools/build_drops.py ClassicDB_1_12_1_z2815.sql Data/DropData.lua
 Предметы в розыгрыше Need/Greed и с подтверждением «персональный» FastLoot не трогает.
 
 Установка: `./install.sh`, потом `/reload`. Тесты: `lua tests/fastloot_test.lua`.
+
+## Как поделиться
+
+`./package.sh` собирает `dist/FastLoot-<версия>.zip` — только файлы для игры (без тестов и инструментов). Другу:
+
+1. Закрыть игру (или потом выйти на экран выбора персонажа).
+2. Распаковать архив в `World of Warcraft/_forever_/Interface/AddOns` так, чтобы получилась папка `AddOns/FastLoot` с файлом `FastLoot.toc` внутри (не `AddOns/FastLoot/FastLoot`).
+3. Зайти в игру, в «Модификациях» проверить, что FastLoot включён.
+
+Лицензия: GPL-3.0 (файл `LICENSE`), потому что база дропа `Data/DropData.lua` получена из cMaNGOS classic-db под GPL-3.0. Делиться и выкладывать можно, исходники (Lua) идут в архиве.
