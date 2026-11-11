@@ -13,7 +13,7 @@ if not FL then
 	return
 end
 
-local ICON = "Interface\\Icons\\INV_Misc_Bag_10"
+local ICON = "Interface\\AddOns\\FastLoot\\Media\\icon"
 
 local function IsSecret(value)
 	return issecretvalue and issecretvalue(value) and true or false
