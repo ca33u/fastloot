@@ -14,12 +14,19 @@ Loot rules (MaNGOS loot system):
                                 entries with chance 0 share what is left of 100 %
 The result is one "effective" chance per item per creature. Items under
 MIN_CHANCE % are left out, and at most MAX_ITEMS items per creature are kept.
+Bosses keep their whole table: down to BOSS_MIN_CHANCE %, up to BOSS_MAX_ITEMS.
+A boss here is an elite (Rank >= 1) with a blue or purple item (not a quest
+item) dropping at BOSS_RARE_CHANCE % or more; plain elites only roll those
+from the shared world tables at well under 1 %.
 """
 import re
 import sys
 
 MIN_CHANCE = 0.5
 MAX_ITEMS = 16
+BOSS_MIN_CHANCE = 0.05
+BOSS_MAX_ITEMS = 40
+BOSS_RARE_CHANCE = 5.0
 
 TABLES = ("creature_template", "creature_loot_template", "reference_loot_template", "item_template")
 
@@ -133,27 +140,39 @@ def main(src, dst):
     creature_loot = loot_rows(rows["creature_loot_template"])
     refs = loot_rows(rows["reference_loot_template"])
 
+    quality = {int(r[0]): int(r[5]) for r in rows["item_template"]}
     names = {}
     loot_of = {}
+    rank = {}
     for r in rows["creature_template"]:
         entry, name, loot_id = int(r[0]), r[1], int(r[56])
         if loot_id:
             loot_of[entry] = loot_id
             names[entry] = name
+            rank[entry] = int(r[33])
+
+    def is_boss(npc, items):
+        if rank.get(npc, 0) < 1:
+            return False
+        return any(not q and c >= BOSS_RARE_CHANCE and quality.get(item, 0) >= 3 for (item, q), c in items.items())
 
     out_lines = []
     count_items = 0
+    bosses = 0
     for npc in sorted(loot_of):
         table = creature_loot.get(loot_of[npc])
         if not table:
             continue
         items = resolve(table, refs)
-        kept = sorted(((c, item, q) for (item, q), c in items.items() if c >= MIN_CHANCE), reverse=True)[:MAX_ITEMS]
+        boss = is_boss(npc, items)
+        bosses += boss
+        floor, cap = (BOSS_MIN_CHANCE, BOSS_MAX_ITEMS) if boss else (MIN_CHANCE, MAX_ITEMS)
+        kept = sorted(((c, item, q) for (item, q), c in items.items() if c >= floor), reverse=True)[:cap]
         if not kept:
             continue
         parts = []
         for c, item, q in kept:
-            num = ("%.0f" % c) if c >= 10 else ("%.1f" % c)
+            num = ("%.0f" % c) if c >= 10 else ("%.1f" % c) if c >= 0.1 else ("%.2f" % c)
             parts.append("%d:%s%s" % (item, num, "q" if q else ""))
         count_items += len(parts)
         out_lines.append('[%d]="%s",' % (npc, ";".join(parts)))
@@ -165,7 +184,7 @@ def main(src, dst):
         fh.write("FastLootDropData = {\n")
         fh.write("\n".join(out_lines))
         fh.write("\n}\n")
-    print("creatures:", len(out_lines), "items:", count_items)
+    print("creatures:", len(out_lines), "items:", count_items, "bosses:", bosses)
 
 
 if __name__ == "__main__":

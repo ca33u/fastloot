@@ -234,6 +234,9 @@ local function Pct(v)
 	if v >= 10 then
 		return string.format("%d%%", math.floor(v + 0.5))
 	end
+	if v < 0.1 then
+		return string.format("%.2f%%", v) -- boss world drops, e.g. 0.08%
+	end
 	return string.format("%.1f%%", v)
 end
 
