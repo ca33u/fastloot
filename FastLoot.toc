@@ -5,7 +5,7 @@
 ## Author: addicted
 ## X-Website: https://addicted.sh
 ## X-License: GPL-3.0
-## Version: 1.5.0
+## Version: 1.6.0
 ## Category: Inventory
 ## IconTexture: Interface\AddOns\FastLoot\Media\icon
 ## SavedVariables: FastLootDB

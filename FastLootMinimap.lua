@@ -13,7 +13,7 @@ if not FL then
 	return
 end
 
-local ICON = "Interface\\AddOns\\FastLoot\\Media\\icon"
+local ICON = "Interface\\AddOns\\FastLoot\\Media\\minimap"
 
 local function IsSecret(value)
 	return issecretvalue and issecretvalue(value) and true or false
