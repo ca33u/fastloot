@@ -1,104 +1,106 @@
+English · [Русский](README.ru.md)
+
 # FastLoot
 
-Быстрый сбор добычи с фильтром для **World of Warcraft: Forever** (Interface 16001). Студия **addicted** — [addicted.sh](https://addicted.sh).
+Fast looting with a filter for **World of Warcraft: Forever** (Interface 16001). Made by **addicted** ([addicted.sh](https://addicted.sh)).
 
-## Два режима
+## Two modes
 
-**Обычный** (по умолчанию). Когда игра делает автосбор, FastLoot забирает всё сразу по событию `LOOT_READY`, ещё до появления окна добычи.
+**Normal** (default). When the game auto loots, FastLoot grabs everything at once on the `LOOT_READY` event, before the loot window even appears.
 
-**Фильтр** (`/fastloot filter`). FastLoot сам решает по каждому предмету, брать его или нет. Встроенный автосбор игры забирает всё подряд, и аддон не может ему помешать, поэтому в режиме фильтра FastLoot выключает автосбор игры и включает его обратно, когда вы выходите из фильтра. **Shift** при сборе — забрать всё, как обычно.
+**Filter** (`/fastloot filter`). FastLoot decides for each item whether to take it. The game's built-in auto loot takes everything and an addon can't stop it, so in filter mode FastLoot turns the game's auto loot off and turns it back on when you leave filter mode. Hold **Shift** while looting to take everything as usual.
 
-## Что берёт фильтр (по порядку)
+## What the filter takes (in order)
 
-1. Список «никогда» — не брать (`/fastloot ignore <предмет>`).
-2. Список «всегда» — брать (`/fastloot always <предмет>`).
-3. Деньги и валюта — брать.
-4. Квестовые предметы — брать (`/fastloot quest`).
-5. Материалы под ваши профессии и рецепты — брать (`/fastloot prof`). Профессии аддон находит сам: Снятие шкур и Кожевничество → кожа, Травничество и Алхимия → травы, Горное дело и Кузнечное дело → руда и камень, Портняжное дело и Первая помощь → ткань, Кулинария и Рыбная ловля → мясо и рыба, Наложение чар → материалы чар, Инженерное дело → металл и детали.
-6. Качество не ниже порога — брать (`/fastloot quality 2`, 2 = зелёное и лучше).
-7. Серые и белые — только если включены (`/fastloot grey`, `/fastloot white`).
+1. "Never" list: don't take (`/fastloot ignore <item>`).
+2. "Always" list: take (`/fastloot always <item>`).
+3. Money and currency: take.
+4. Quest items: take (`/fastloot quest`).
+5. Materials for your professions and recipes: take (`/fastloot prof`). The addon detects your professions by itself: Skinning and Leatherworking → leather, Herbalism and Alchemy → herbs, Mining and Blacksmithing → ore and stone, Tailoring and First Aid → cloth, Cooking and Fishing → meat and fish, Enchanting → enchanting materials, Engineering → metal and parts.
+6. Quality at or above the threshold: take (`/fastloot quality 2`, 2 = green and better).
+7. Grey and white items: only if turned on (`/fastloot grey`, `/fastloot white`).
 
-Остальное остаётся в трупе, окно добычи закрывается само (`/fastloot close` отключает). **Важно для снятия шкур:** с трупа, в котором остался лут, нельзя снять шкуру. Если это мешает, включите `/fastloot white`.
+Everything else stays on the corpse, and the loot window closes by itself (`/fastloot close` turns that off). **Important for skinning:** you can't skin a corpse that still has loot on it. If that gets in the way, turn on `/fastloot white`.
 
-`<предмет>` — ссылка (Shift+клик по предмету в чат), ID или название.
+`<item>` is an item link (Shift-click the item into chat), an ID or a name.
 
-## Окно
+## Window
 
-`/fastloot` или круглая кнопка с сумкой у миникарты (правый клик по кнопке — переключить режим, перетаскивание — двигать по кругу). В заголовке окна — главный выключатель **FastLoot on**. Дальше блоки сверху вниз:
+`/fastloot` or the round bag button by the minimap (right-click the button to switch modes, drag it to move it around the minimap). The window title holds the main **FastLoot on** switch. Below it, from top to bottom:
 
-1. **HOW TO LOOT** — как собирать, выбор из двух: **Take everything** (брать всё) или **Filter by rules below** (брать только то, что разрешают правила ниже).
-2. **FILTER TAKES** — что брать в режиме фильтра: квестовые предметы, материалы профессий, серые, белые, любое качество от порога (клик по кнопке меняет порог) и «оставить остальное и закрыть окно добычи». Пока выбран режим «брать всё», блок бледный: эти галочки ни на что не влияют.
-3. **EXTRAS** — дроп в подсказке моба и панель розыгрышей. Работают в обоих режимах.
-4. **ITEM LISTS** — два «банка» **NEVER LOOT** и **ALWAYS LOOT** для режима фильтра. Перетащите предмет из сумки в нужный, правый клик по иконке убирает. Esc закрывает окно.
+1. **HOW TO LOOT**: how to loot, one of two: **Take everything** or **Filter by rules below** (take only what the rules below allow).
+2. **FILTER TAKES**: what to take in filter mode: quest items, profession materials, grey, white, any quality from the threshold up (click the button to change the threshold), and "leave the rest and close the loot window". While "Take everything" is selected, this block is faded: these checkboxes have no effect.
+3. **EXTRAS**: mob drops in the tooltip and the rolls panel. They work in both modes.
+4. **ITEM LISTS**: two "banks", **NEVER LOOT** and **ALWAYS LOOT**, for filter mode. Drag an item from your bags into the one you want; right-click an icon to remove it. Esc closes the window.
 
-## Дроп в подсказке моба
+## Mob drops in the tooltip
 
-Наведите курсор на моба: под стандартной подсказкой появится строка «Drops: N items, you killed K (Shift)». **Зажмите Shift**, и строка развернётся в список, самые частые предметы сверху:
+Hover over a mob: a line "Drops: N items, you killed K (Shift)" appears under the standard tooltip. **Hold Shift** and the line expands into a list, most common items first:
 
 ```
-[иконка] Название предмета     38%   2/5
+[icon] Item name     38%   2/5
 ```
 
-- **38%** — шанс из классической базы (cMaNGOS classic-db, данные Classic 1.12). В Forever дроп мог измениться.
-- **2/5** — ваша статистика: предмет выпал 2 раза за 5 убийств. Это реальный шанс в Forever, он копится сам.
-- **(quest)** — падает только пока вы на квесте.
-- Предметы, которые выпадали вам, но которых нет в базе, тоже попадают в список.
+- **38%** is the chance from the classic database (cMaNGOS classic-db, Classic 1.12 data). Drops may have changed in Forever.
+- **2/5** is your own statistic: the item dropped 2 times in 5 kills. This is the real chance in Forever, and it builds up by itself.
+- **(quest)** means it only drops while you're on the quest.
+- Items that dropped for you but aren't in the database are added to the list too.
 
-Убийство засчитывается, когда моб, с которого вы или группа можете лутать, умирает на неймплейте или в цели. Предметы считаются при открытии трупа. Статистика общая на аккаунт (`FastLootDB.stats`). Выключить подсказку: `/fastloot drops` или галочка «Mob drops tip» в окне.
+A kill counts when a mob that you or your group can loot dies on a nameplate or as your target. Items are counted when you open the corpse. Statistics are shared across the account (`FastLootDB.stats`). To turn the tooltip off: `/fastloot drops` or the "Mob drops tip" checkbox in the window.
 
-Данные: `Data/DropData.lua` (около 360 КБ, 4268 мобов) собран скриптом `tools/build_drops.py` из базы cMaNGOS (GPL-3.0, github.com/cmangos/classic-db). Шанс считается по правилам MaNGOS: группы предметов, ссылки на общие таблицы, квестовые. В список попадают предметы с шансом от 0,5%, не больше 16 на моба. Пересобрать:
+Data: `Data/DropData.lua` (about 360 KB, 4268 mobs) is built by the `tools/build_drops.py` script from the cMaNGOS database (GPL-3.0, github.com/cmangos/classic-db). Chances are calculated by MaNGOS rules: item groups, references to shared tables, quest items. The list includes items with a chance of 0.5% or more, up to 16 per mob. To rebuild:
 
 ```
 python3 -I tools/build_drops.py ClassicDB_1_12_1_z2815.sql Data/DropData.lua
 ```
 
-## Розыгрыши в группе
+## Group rolls
 
-Панель **ROLLS** (по умолчанию справа от центра экрана, всегда перетаскивается мышкой, место запоминается) показывает предметы, которые разыгрываются в группе. Под каждым — кто что выбрал (иконки Need / Greed / Disenchant / Pass) и какое число выкинул. Победитель вверху, золотым со звёздочкой. Пока идёт розыгрыш, под предметом бежит полоска времени. После окончания предмет держится 30 секунд; правый клик по панели очищает её сразу. Данные берутся из системных сообщений розыгрыша в чате лута, шаблоны — из строк самого клиента, так что работает на любом языке.
+The **ROLLS** panel (right of screen center by default, can always be dragged with the mouse, position is saved) shows items being rolled on in your group. Under each one: who picked what (Need / Greed / Disenchant / Pass icons) and what number they rolled. The winner is at the top, in gold with a star. While a roll is in progress, a timer bar runs under the item. After the roll ends the item stays for 30 seconds; right-click the panel to clear it right away. The data comes from the system roll messages in the loot chat, and the patterns come from the client's own strings, so it works in any language.
 
-**Подходит ли вещь вам** — справа от предмета в панели и цветной рамкой вокруг стандартного окна розыгрыша:
+**Is the item for you**: shown to the right of the item in the panel and as a colored border around the standard roll window:
 
-| Метка | Значит |
+| Label | Meaning |
 |---|---|
-| зелёная **UPGRADE +6** | можете носить, и уровень предмета выше того, что надето в этом слоте (или слот пуст) |
-| белая **you can use** | можете носить, но не выше надетого |
-| жёлтая **needs level 35** | сможете носить позже |
-| красная **can't use** | ваш персонаж не владеет этим типом брони или оружия |
+| green **UPGRADE +6** | you can wear it, and its item level is higher than what you have equipped in that slot (or the slot is empty) |
+| white **you can use** | you can wear it, but it's not higher than what you have equipped |
+| yellow **needs level 35** | you'll be able to wear it later |
+| red **can't use** | your character doesn't have the proficiency for this armor or weapon type |
 
-Владение проверяется по навыкам, которые реально выучены у персонажа (Plate Mail, One-Handed Swords и т. п.), поэтому учитываются и тренер, и изменения классов в Forever. Уровень предмета — грубая мерка: характеристики не взвешиваются, точную оценку даёт подсказка GearQuest.
+Proficiency is checked against the skills your character has actually learned (Plate Mail, One-Handed Swords and so on), so both trainers and Forever's class changes are taken into account. Item level is a rough measure: stats are not weighed; for an accurate comparison use the GearQuest tooltip.
 
-## Команды (`/fastloot` или `/fl`)
+## Commands (`/fastloot` or `/fl`)
 
-| Команда | Что делает |
+| Command | What it does |
 |---|---|
-| `/fastloot` | открыть окно |
-| `/fastloot on`, `off` | включить/выключить FastLoot |
-| `/fastloot filter` | режим фильтра вкл/выкл |
-| `/fastloot ignore <предмет>` | никогда не брать |
-| `/fastloot always <предмет>` | всегда брать |
-| `/fastloot remove <предмет>` | убрать из обоих списков |
-| `/fastloot list` | показать списки |
-| `/fastloot quest`, `prof`, `grey`, `white`, `close` | переключить правило |
-| `/fastloot quality <0-5>` | брать это качество и лучше (0 серое, 1 белое, 2 зелёное, 3 синее, 4 эпик) |
-| `/fastloot drops` | дроп в подсказке моба вкл/выкл |
-| `/fastloot rolls` | панель розыгрышей и метки «для вас» вкл/выкл |
-| `/fastloot rollsmove` | показать пустую панель, чтобы заранее поставить её на место (панель и так всегда двигается мышкой) |
-| `/fastloot rollstest` | показать пример розыгрыша |
-| `/fastloot minimap` | показать/скрыть кнопку у миникарты |
-| `/fastloot status` | текущие настройки и найденные профессии |
+| `/fastloot` | open the window |
+| `/fastloot on`, `off` | turn FastLoot on/off |
+| `/fastloot filter` | filter mode on/off |
+| `/fastloot ignore <item>` | never take |
+| `/fastloot always <item>` | always take |
+| `/fastloot remove <item>` | remove from both lists |
+| `/fastloot list` | show the lists |
+| `/fastloot quest`, `prof`, `grey`, `white`, `close` | toggle a rule |
+| `/fastloot quality <0-5>` | take this quality and better (0 grey, 1 white, 2 green, 3 blue, 4 epic) |
+| `/fastloot drops` | mob drops in the tooltip on/off |
+| `/fastloot rolls` | rolls panel and "for you" labels on/off |
+| `/fastloot rollsmove` | show an empty panel so you can place it in advance (the panel can always be moved with the mouse anyway) |
+| `/fastloot rollstest` | show a sample roll |
+| `/fastloot minimap` | show/hide the minimap button |
+| `/fastloot status` | current settings and detected professions |
 
-Предметы в розыгрыше Need/Greed и с подтверждением «персональный» FastLoot не трогает.
+FastLoot doesn't touch items that are up for a Need/Greed roll or that ask for a Bind on Pickup confirmation.
 
-Установка: `./install.sh`, потом `/reload`. Тесты: `lua tests/fastloot_test.lua`.
+Installation: `./install.sh`, then `/reload`. Tests: `lua tests/fastloot_test.lua`.
 
-## Как поделиться
+## Sharing
 
-`./package.sh` собирает `dist/FastLoot-<версия>.zip` — только файлы для игры (без тестов и инструментов). Другу:
+`./package.sh` builds `dist/FastLoot-<version>.zip` with only the game files (no tests or tools). For a friend:
 
-1. Закрыть игру (или потом выйти на экран выбора персонажа).
-2. Распаковать архив в `World of Warcraft/_forever_/Interface/AddOns` так, чтобы получилась папка `AddOns/FastLoot` с файлом `FastLoot.toc` внутри (не `AddOns/FastLoot/FastLoot`).
-3. Зайти в игру, в «Модификациях» проверить, что FastLoot включён.
+1. Close the game (or log out to character select afterwards).
+2. Unzip the archive into `World of Warcraft/_forever_/Interface/AddOns` so that you get an `AddOns/FastLoot` folder with `FastLoot.toc` inside (not `AddOns/FastLoot/FastLoot`).
+3. Log in and check under "AddOns" that FastLoot is enabled.
 
-Лицензия: GPL-3.0 (файл `LICENSE`), потому что база дропа `Data/DropData.lua` получена из cMaNGOS classic-db под GPL-3.0. Делиться и выкладывать можно, исходники (Lua) идут в архиве.
+License: GPL-3.0 (`LICENSE` file), because the drop database `Data/DropData.lua` is derived from cMaNGOS classic-db under GPL-3.0. You're free to share and publish it; the source (Lua) is included in the archive.
 
 © 2026 addicted · [addicted.sh](https://addicted.sh)
