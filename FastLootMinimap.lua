@@ -13,7 +13,7 @@ if not FL then
 	return
 end
 
-local ICON = "Interface\\AddOns\\FastLoot\\Media\\minimap"
+local ICON = "Interface\\AddOns\\FastLoot\\Media\\minimap.blp"
 
 local function IsSecret(value)
 	return issecretvalue and issecretvalue(value) and true or false
@@ -84,10 +84,9 @@ local function Create()
 	icon:SetSize(17, 17)
 	icon:SetPoint("TOPLEFT", 7, -6)
 	icon:SetTexture(ICON)
-	icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-	if icon.SetMask then
-		pcall(icon.SetMask, icon, "Interface\\CharacterFrame\\TempPortraitAlphaMask")
-	end
+	-- the picture is already round (transparent corners): a mask texture
+	-- (SetMask) draws it as scrambled stripes on Forever
+	icon:SetTexCoord(0, 1, 0, 1)
 	btn.icon = icon
 
 	local border = btn:CreateTexture(nil, "OVERLAY")
